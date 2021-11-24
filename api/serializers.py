@@ -45,3 +45,18 @@ class VictimSerializer(serializers.ModelSerializer):
             'longitude',
             'additional_info',
         )
+
+class CampSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        camp = Camp.objects.create(**validated_data)
+        return camp
+
+    class Meta:
+        model = Victim
+        fields = (
+            'latitude',
+            'longitude',
+            'available_slots',
+            'max_capacity'
+        )

@@ -27,12 +27,14 @@ class Volunteer(models.Model):
         return self.name + ' - ' + self.mobile_no
 
 class Camp(models.Model):
+    # name = models.CharField(max_length=30)
     location = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
     state = models.CharField(max_length=30)
     latitude = models.DecimalField(max_digits=19, decimal_places=16)
     longitude = models.DecimalField(max_digits=19, decimal_places=16)
     max_capacity = models.IntegerField()
+    available_slots = models.IntegerField(default=5)
     def __str__(self):
         return self.location + ' - ' + self.max_capacity
 
