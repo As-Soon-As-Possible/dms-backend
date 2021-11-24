@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser,AllowAny
 from django.contrib.auth.models import User
+from .models import Victim,Volunteer
 from rest_framework.generics import GenericAPIView
 
 
@@ -38,7 +39,7 @@ class UserRecordView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-class VolunteerRecordView(APIView):
+class RecordView(APIView):
     """
     API View to create or get a list of all the registered
     users. GET request returns the registered users whereas
@@ -90,16 +91,19 @@ class VictimSMSAPI(GenericAPIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    def get(self, format=None):
+        vics = Victim.objects.all()
+        serializer = VictimSerializer(vics, many=True)
+        return Response(serializer.data)
+
 
 
 class GetRescueMapAPI(GenericAPIView):
-
     def get(self, request, *args, **kwargs):
         try:
-            victims = Victim.objects.all()
-
-            data = serializers.serialize("json", victims)
-            return render(request, "map_view.html", {"victims": data})
+            vics = Victim.objects.all()
+            serializer = VictimSerializer(vics, many=True)
+            return Response(serializer.data)
         except Exception as e:
             return Response({'ERROR': type(e).__name__.upper(), "MESSAGE": str(e)}, status=status.HTTP_404_NOT_FOUND)
 

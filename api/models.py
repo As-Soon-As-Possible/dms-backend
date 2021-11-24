@@ -30,6 +30,5 @@ class Camp(models.Model):
     latitude = models.DecimalField(max_digits=19, decimal_places=16)
     longitude = models.DecimalField(max_digits=19, decimal_places=16)
     max_capacity = models.IntegerField()
-
     def __str__(self):
         return self.location + ' - ' + self.max_capacity
