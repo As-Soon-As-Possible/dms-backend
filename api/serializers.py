@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from .models import Victim
+
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -24,3 +26,22 @@ class UserSerializer(serializers.ModelSerializer):
                 fields=['username', 'email']
             )
         ]
+
+
+
+class VictimSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        victim = Victim.objects.create_user(**validated_data)
+        return victim
+
+    class Meta:
+        model = User
+        fields = (
+            'name',
+            'mobile_no',
+            'location',
+            'latitude',
+            'longitude',
+            'additional_info',
+        )

@@ -1,6 +1,8 @@
 from django.db import models
 
 class Victim(models.Model):
+    name = models.CharField(max_length=30)
+    mobile_no = models.CharField(max_length=15, primary_key=True)
     location = models.CharField(max_length=30)
     city = models.CharField(max_length=30)
     state = models.CharField(max_length=30)
@@ -14,6 +16,7 @@ class Victim(models.Model):
 
 class Volunteer(models.Model):
     name = models.CharField(max_length=30)
+    mobile_no = models.CharField(max_length=15, primary_key=True)
     gender = models.CharField(max_length=15)
     age = models.IntegerField()
     qualification = models.CharField(max_length=100)
