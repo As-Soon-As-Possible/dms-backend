@@ -1,12 +1,14 @@
 from django.shortcuts import render
-from .serializers import UserSerializer, VictimSerializer
+from .serializers import UserSerializer, VictimSerializer,CampSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser,AllowAny
 from django.contrib.auth.models import User
+from .models import Victim,Volunteer
 from rest_framework.generics import GenericAPIView
-
+from .models import Victim, Volunteer, Assigned, Camp
+from geopy.distance import geodesic
 
 class UserRecordView(APIView):
     """
@@ -44,8 +46,7 @@ class VolunteerRecordView(APIView):
     users. GET request returns the registered users whereas
     a POST request allows to create a new user.
     """
-    permission_classes = [IsAdminUser]
-    http_method_names = ['get', 'head']
+    http_method_names = ['get', 'head','post']
 
     def get(self, format=None):
         users = User.objects.all()
@@ -90,17 +91,85 @@ class VictimSMSAPI(GenericAPIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    def get(self, format=None):
+        vics = Victim.objects.all()
+        serializer = VictimSerializer(vics, many=True)
+        return Response(serializer.data)
+
 
 
 class GetRescueMapAPI(GenericAPIView):
-
     def get(self, request, *args, **kwargs):
         try:
-            victims = Victim.objects.all()
-
-            data = serializers.serialize("json", victims)
-            return render(request, "map_view.html", {"victims": data})
+            vics = Victim.objects.all()
+            serializer = VictimSerializer(vics, many=True)
+            return Response(serializer.data)
         except Exception as e:
             return Response({'ERROR': type(e).__name__.upper(), "MESSAGE": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-# Create your views here.
+class FindVictim(APIView):
+    http_method_names = ['get', 'head', 'post']
+    def post(self, request):
+        mobile_no = request.data['mobile_no']
+        location = request.data['location']
+        latitude = request.data['latitude']
+        longitude = request.data['longitude']
+        assigned_victims_queryset = Assigned.objects.all()
+        assigned_victims = []
+        for i in range(len(assigned_victims_queryset)):
+            assigned_victims.append(assigned_victims_queryset[i].assigned_victim.mobile_no)
+        print(assigned_victims)
+        print(Victim.objects.all())
+        victims_to_be_rescued = Victim.objects.exclude(mobile_no__in = assigned_victims)
+        print(victims_to_be_rescued)
+        dist = float('inf')
+        for victim in victims_to_be_rescued:
+            victim_latitude = victim.latitude
+            victim_longitude = victim.longitude
+            curr_dist = geodesic((latitude, longitude),(victim_latitude, victim_longitude)).kilometers
+            if(curr_dist < dist):
+                dist = curr_dist
+                victim_mobile_no = victim.mobile_no
+            pass
+
+        nearest_victim = Victim.objects.filter(mobile_no = victim_mobile_no).first()
+        print(nearest_victim)
+        volunteer =  Volunteer.objects.filter(mobile_no=mobile_no).first()
+        print(volunteer)
+        new = Assigned(assigned_volunteer = volunteer, assigned_victim = nearest_victim)
+        new.save()
+        return Response(request.data)
+
+class FindCamp(APIView):
+    http_method_names=['get','head','post']
+    # def post(self, request):
+    #     mobile_no = request.data['mobile_no']
+    #     location = request.data['location']
+    #     latitude = request.data['latitude']
+    def post(self,request):
+        mobile_no = request.data['mobile_no']
+        latitude = request.data['latitude']
+        longitude = request.data['longitude']
+        camps_queryset = Camp.objects.all()
+        for camp in camps_queryset:
+            if camp.available_slots ==0:
+                continue
+            camp_latitude = camp.latitude
+            camp_longitude= camp.longitude
+            curr_dist = geodesic((latitude, longitude),(camp_latitude, camp_longitude)).kilometers
+            if(curr_dist < dist):
+                dist = curr_dist
+                camp_name = camp.name
+            pass
+        nearest_camp = Camp.objects.filter(name = camp_name).first()
+        serializer = CampSerializer(nearest_camp)
+        return Response(serializer.data)
+
+
+    def get(self, request, *args, **kwargs):
+        try:
+            camps = Camp.objects.order_by(available_slots)
+            serializer = CampSerializer(camps, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'ERROR': type(e).__name__.upper(), "MESSAGE": str(e)}, status=status.HTTP_404_NOT_FOUND)
