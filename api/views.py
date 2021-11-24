@@ -151,6 +151,7 @@ class FindCamp(APIView):
         latitude = request.data['latitude']
         longitude = request.data['longitude']
         camps_queryset = Camp.objects.all()
+        dist = float('inf')
         for camp in camps_queryset:
             if camp.available_slots ==0:
                 continue
@@ -168,7 +169,7 @@ class FindCamp(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            camps = Camp.objects.order_by(available_slots)
+            camps = Camp.objects.order_by('available_slots')
             serializer = CampSerializer(camps, many=True)
             return Response(serializer.data)
         except Exception as e:

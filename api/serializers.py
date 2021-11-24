@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Victim
+from .models import Victim, Camp
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -53,8 +53,9 @@ class CampSerializer(serializers.ModelSerializer):
         return camp
 
     class Meta:
-        model = Victim
+        model = Camp
         fields = (
+            'name',
             'latitude',
             'longitude',
             'available_slots',
