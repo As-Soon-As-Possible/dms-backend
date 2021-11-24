@@ -32,11 +32,11 @@ class UserSerializer(serializers.ModelSerializer):
 class VictimSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
-        victim = Victim.objects.create_user(**validated_data)
+        victim = Victim.objects.create(**validated_data)
         return victim
 
     class Meta:
-        model = User
+        model = Victim
         fields = (
             'name',
             'mobile_no',
